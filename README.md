@@ -1,2 +1,1 @@
-# linusware-luavm-scripts
-scripts for linusware external luavm
+# scripts that i made for my own use
