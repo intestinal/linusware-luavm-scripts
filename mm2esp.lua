@@ -1,4 +1,4 @@
-local Players = game:GetService("Players")
+local Players=game:GetService("Players")
 local me=Players.LocalPlayer
 
 local red=Color3.fromRGB(255,60,60)
@@ -17,13 +17,13 @@ sec:toggle("Self ESP",false,function(v) selfesp=v end)
 
 local function role(p)
     local knife,gun=false,false
+
     local function scan(c)
-        if c then
-            for _,v in c:GetChildren() do
-                local n=v.Name:lower()
-                if n=="knife" then knife=true
-                elseif n=="gun" then gun=true end
-            end
+        if not c then return end
+        for _,v in c:GetChildren() do
+            local n=v.Name:lower()
+            if n=="knife" then knife=true
+            elseif n=="gun" then gun=true end
         end
     end
 
@@ -35,29 +35,51 @@ local function role(p)
     return "innocent"
 end
 
+local tracked={}
+
+local function clear(p)
+    local char=tracked[p]
+    if char then
+        lw.esp(char,false)
+        tracked[p]=nil
+    end
+end
+
 while true do
     for _,p in Players:GetPlayers() do
         local char=p.Character
         local hum=char and char:FindFirstChildOfClass("Humanoid")
-        local col=nil
+
+        if tracked[p] and tracked[p]~=char then
+            clear(p)
+        end
 
         if char and hum and hum.Health>0 then
+            tracked[p]=char
+
             local r=role(p)
+            local col=nil
 
             if r=="murd" and murd then col=red
             elseif r=="sher" and sher then col=blue
             elseif r=="innocent" and innocent then col=green end
 
             if p==me and not selfesp then col=nil end
+
             if col then
                 lw.esp(char,{color=col,distance=true})
             else
                 lw.esp(char,false)
             end
-        elseif char then
-            lw.esp(char,false)
+        else
+            clear(p)
+            if char then lw.esp(char,false) end
         end
     end
-    task.wait(.5)
-end
 
+    for p in tracked do
+        if p.Parent==nil then clear(p) end
+    end
+
+    task.wait(0.25)
+end
